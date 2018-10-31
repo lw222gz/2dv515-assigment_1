@@ -1,39 +1,42 @@
 package application.dataset.handler;
 
-import static java.lang.Float.parseFloat;
+import static java.lang.Double.parseDouble;
 import static java.lang.Long.parseLong;
 import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 
-import application.objects.Movie;
-import application.objects.MovieReview;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import application.objects.Rating;
+import application.objects.User;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DatasetHandler {
 
-	private Map<Long, Movie> moviesById;
-	private Multimap<String, MovieReview> userReviews;
+	private Map<Long, User> usersById;
 	private ClassLoader classLoader;
 
 	@PostConstruct
 	void setup(){
-		moviesById = new HashMap<>();
-		userReviews = ArrayListMultimap.create();
+		usersById = new HashMap<>();
 		classLoader = getClass().getClassLoader();
 
-		parseDatasetFile("movies.csv", this::parseMovie);
-		parseDatasetFile("review.csv", this::parseReview);
+		parseDatasetFile("users.csv", this::parseUser);
+		parseDatasetFile("ratings.csv", this::parseRating);
+	}
+
+	public List<User> getDataset(){
+		return new ArrayList<>(usersById.values());
 	}
 
 	void parseDatasetFile(String filePath, Consumer<String> parser){
@@ -50,15 +53,21 @@ public class DatasetHandler {
 		}
 	}
 
-	void parseMovie(String line){
-		String[] vals = line.split(",", 2);
-		long movieId = parseLong(vals[0]);
-		moviesById.put(movieId, new Movie(movieId, vals[1]));
+	void parseUser(String line){
+		String[] vals = line.split(";", 2);
+		Long userId = parseLong(vals[1]);
+		usersById.put(userId, new User(userId, vals[0]));
 	}
 
-	void parseReview(String line){
-		String[] vals = line.split(",", 3);
+	void parseRating(String line){
+		String[] vals = line.split(";", 3);
+		Long userId = parseLong(vals[0]);
 
-		userReviews.put(vals[0], new MovieReview(parseFloat(vals[2]), moviesById.get(parseLong(vals[1]))));
+		ofNullable(usersById.get(userId))
+				.ifPresent(user -> user.addRaiting(new Rating(vals[1], parseDouble(vals[2]))));
+	}
+
+	public User getUserById(long userId) {
+		return usersById.get(userId);
 	}
 }

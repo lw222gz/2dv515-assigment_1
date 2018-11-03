@@ -11,6 +11,7 @@ import application.dataset.handler.DatasetHandler;
 import application.objects.Rating;
 import application.objects.User;
 import application.objects.UserMatchVO;
+import application.objects.UserMatchesVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,15 +23,15 @@ public class EuclideanDistanceService {
 	@Autowired
 	private DatasetHandler datasetHandler;
 
-	public List<UserMatchVO> calculateEuclideanDistanceForUser(long userId){
-		User matchingUser = datasetHandler.getUserById(userId);
+	public UserMatchesVO calculateEuclideanDistanceForUser(long userId){
+		User user = datasetHandler.getUserById(userId);
 		List<User> users = datasetHandler.getDataset();
 
-		return users.stream()
-				.filter(user -> user != matchingUser)
-				.map(user -> new UserMatchVO(user.getName(), euclidean(matchingUser, user)))
+		return new UserMatchesVO(user, users.stream()
+				.filter(otherUser -> otherUser != user)
+				.map(otherUser -> new UserMatchVO(otherUser.getName(), euclidean(user, otherUser)))
 				.sorted((userA, userB) -> compare(userB.getMatchScore(), userA.getMatchScore()))
-				.collect(toList());
+				.collect(toList()));
 	}
 
 	private double euclidean(User userA, User userB) {

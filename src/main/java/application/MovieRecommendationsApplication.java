@@ -1,11 +1,7 @@
 package application;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import application.euclidean.EuclideanDistanceService;
-import application.objects.UserMatchVO;
+import application.objects.UserMatchesVO;
 import application.pearson.PearsonCorrelationSerivce;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -30,15 +26,12 @@ public class MovieRecommendationsApplication {
 
 
 	@GetMapping("/euclidean/{userId}")
-	public Map<String, List<UserMatchVO>> getEuclidean(@PathVariable Long userId){
-		HashMap<String, List<UserMatchVO>> result = new HashMap<>();
-		result.put("The given user gave the following resutl towards other users", euclideanDistanceService.calculateEuclideanDistanceForUser(userId));
-		return result;
-		//return euclideanDistanceService.calculateEuclideanDistanceForUser(userId);
+	public UserMatchesVO getEuclidean(@PathVariable Long userId){
+		return euclideanDistanceService.calculateEuclideanDistanceForUser(userId);
 	}
 
 	@GetMapping("/pearson/{userId}")
-	public List<UserMatchVO> getPearson(@PathVariable Long userId){
+	public UserMatchesVO getPearson(@PathVariable Long userId){
 		return pearsonCorrelationSerivce.calculatePearsonCorrelationScore(userId);
 	}
 }

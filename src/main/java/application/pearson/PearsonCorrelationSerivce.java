@@ -11,6 +11,7 @@ import application.dataset.handler.DatasetHandler;
 import application.objects.Rating;
 import application.objects.User;
 import application.objects.UserMatchVO;
+import application.objects.UserMatchesVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,15 +24,15 @@ public class PearsonCorrelationSerivce {
 	@Autowired
 	private DatasetHandler datasetHandler;
 
-	public List<UserMatchVO> calculatePearsonCorrelationScore(long userId){
-		User matchingUser = datasetHandler.getUserById(userId);
+	public UserMatchesVO calculatePearsonCorrelationScore(long userId){
+		User user = datasetHandler.getUserById(userId);
 		List<User> users = datasetHandler.getDataset();
 
-		return users.stream()
-				.filter(user -> user != matchingUser)
-				.map(user -> new UserMatchVO(user.getName(), pearson(matchingUser, user)))
+		return new UserMatchesVO(user, users.stream()
+				.filter(otherUser -> otherUser != user)
+				.map(otherUser -> new UserMatchVO(otherUser.getName(), pearson(user, otherUser)))
 				.sorted((userA, userB) -> compare(userB.getMatchScore(), userA.getMatchScore()))
-				.collect(toList());
+				.collect(toList()));
 	}
 
 	private double pearson(User userA, User userB) {
@@ -53,6 +54,9 @@ public class PearsonCorrelationSerivce {
 					pSum += userAScore * userBScore;
 
 					sharedAmountOfRatings++;
+
+					//Each user is only allowed 1 rating per movie
+					break;
 				}
 			}
 		}

@@ -2,7 +2,6 @@ package application.objects;
 
 public class Rating {
 
-	//1;"Lady in the Water";2.5
 	private final String movie;
 	private final double score;
 

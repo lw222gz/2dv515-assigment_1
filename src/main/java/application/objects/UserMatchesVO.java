@@ -2,9 +2,6 @@ package application.objects;
 
 import java.util.List;
 
-/**
- * Copyright (c) 2018 IST - International Software Technology. All rights reserved.
- */
 public class UserMatchesVO {
 	private List<UserMatchVO> matches;
 	private final String title;

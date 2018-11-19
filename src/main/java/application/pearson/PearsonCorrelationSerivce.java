@@ -10,8 +10,7 @@ import java.util.List;
 import application.dataset.handler.DatasetHandler;
 import application.objects.Rating;
 import application.objects.User;
-import application.objects.UserMatchVO;
-import application.objects.UserMatchesVO;
+import application.objects.UserMatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,15 +23,14 @@ public class PearsonCorrelationSerivce {
 	@Autowired
 	private DatasetHandler datasetHandler;
 
-	public UserMatchesVO calculatePearsonCorrelationScore(long userId){
-		User user = datasetHandler.getUserById(userId);
-		List<User> users = datasetHandler.getDataset();
+	public List<UserMatch> calculatePearsonCorrelationScore(User user){
+		List<User> users = datasetHandler.getUsers();
 
-		return new UserMatchesVO(user, users.stream()
+		return users.stream()
 				.filter(otherUser -> otherUser != user)
-				.map(otherUser -> new UserMatchVO(otherUser.getName(), pearson(user, otherUser)))
+				.map(otherUser -> new UserMatch(otherUser, pearson(user, otherUser)))
 				.sorted((userA, userB) -> compare(userB.getMatchScore(), userA.getMatchScore()))
-				.collect(toList()));
+				.collect(toList());
 	}
 
 	private double pearson(User userA, User userB) {
@@ -59,6 +57,10 @@ public class PearsonCorrelationSerivce {
 					break;
 				}
 			}
+		}
+
+		if(sharedAmountOfRatings == 0){
+			return 0;
 		}
 
 		double numerator = pSum - ((userASum * userBSum) / sharedAmountOfRatings);

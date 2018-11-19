@@ -10,8 +10,7 @@ import java.util.List;
 import application.dataset.handler.DatasetHandler;
 import application.objects.Rating;
 import application.objects.User;
-import application.objects.UserMatchVO;
-import application.objects.UserMatchesVO;
+import application.objects.UserMatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,15 +22,14 @@ public class EuclideanDistanceService {
 	@Autowired
 	private DatasetHandler datasetHandler;
 
-	public UserMatchesVO calculateEuclideanDistanceForUser(long userId){
-		User user = datasetHandler.getUserById(userId);
-		List<User> users = datasetHandler.getDataset();
+	public List<UserMatch> calculateEuclideanDistanceForUser(User user){
+		List<User> users = datasetHandler.getUsers();
 
-		return new UserMatchesVO(user, users.stream()
+		return users.stream()
 				.filter(otherUser -> otherUser != user)
-				.map(otherUser -> new UserMatchVO(otherUser.getName(), euclidean(user, otherUser)))
+				.map(otherUser -> new UserMatch(otherUser, euclidean(user, otherUser)))
 				.sorted((userA, userB) -> compare(userB.getMatchScore(), userA.getMatchScore()))
-				.collect(toList()));
+				.collect(toList());
 	}
 
 	private double euclidean(User userA, User userB) {
@@ -45,6 +43,10 @@ public class EuclideanDistanceService {
 					break;
 				}
 			}
+		}
+
+		if(sum == 0){
+			return 0;
 		}
 
 		return new BigDecimal(1.0 / (1.0 + sum))

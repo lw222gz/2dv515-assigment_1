@@ -24,7 +24,7 @@ public class User {
 		return name;
 	}
 
-	public void addRaiting(Rating rating){
+	public void addRating(Rating rating){
 		ratings.add(rating);
 	}
 

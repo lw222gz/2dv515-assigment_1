@@ -35,7 +35,7 @@ public class DatasetHandler {
 		parseDatasetFile("ratings.csv", this::parseRating);
 	}
 
-	public List<User> getDataset(){
+	public List<User> getUsers(){
 		return new ArrayList<>(usersById.values());
 	}
 
@@ -64,7 +64,7 @@ public class DatasetHandler {
 		Long userId = parseLong(vals[0]);
 
 		ofNullable(usersById.get(userId))
-				.ifPresent(user -> user.addRaiting(new Rating(vals[1], parseDouble(vals[2]))));
+				.ifPresent(user -> user.addRating(new Rating(vals[1], parseDouble(vals[2]), user)));
 	}
 
 	public User getUserById(long userId) {

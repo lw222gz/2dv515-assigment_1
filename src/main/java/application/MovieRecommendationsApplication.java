@@ -1,11 +1,9 @@
 package application;
 
-import java.util.List;
-
 import application.dataset.handler.DatasetHandler;
 import application.euclidean.EuclideanDistanceService;
 import application.movie.recommendations.MovieRecommendationsService;
-import application.objects.MovieMatch;
+import application.objects.MovieMatchesVO;
 import application.objects.User;
 import application.objects.UserMatchesVO;
 import application.pearson.PearsonCorrelationSerivce;
@@ -50,14 +48,14 @@ public class MovieRecommendationsApplication {
 	}
 
 	@GetMapping("/pearson/movies/{userId}")
-	public List<MovieMatch> getPearsonMovieMatches(@PathVariable Long userId){
+	public MovieMatchesVO getPearsonMovieMatches(@PathVariable Long userId){
 		User user = datasetHandler.getUserById(userId);
-		return movieRecommendationsService.getRecommendations(user, pearsonCorrelationSerivce.calculatePearsonCorrelationScore(user));
+		return new MovieMatchesVO(user, movieRecommendationsService.getRecommendations(user, pearsonCorrelationSerivce.calculatePearsonCorrelationScore(user)));
 	}
 
 	@GetMapping("/euclidean/movies/{userId}")
-	public List<MovieMatch> getEuclideanMovieMatches(@PathVariable Long userId){
+	public MovieMatchesVO getEuclideanMovieMatches(@PathVariable Long userId){
 		User user = datasetHandler.getUserById(userId);
-		return movieRecommendationsService.getRecommendations(user, euclideanDistanceService.calculateEuclideanDistanceForUser(user));
+		return new MovieMatchesVO(user, movieRecommendationsService.getRecommendations(user, euclideanDistanceService.calculateEuclideanDistanceForUser(user)));
 	}
 }

@@ -1,12 +1,14 @@
 package application.movie.recommendations;
 
+import static com.google.common.collect.MultimapBuilder.hashKeys;
+import static com.google.common.collect.Multimaps.toMultimap;
 import static java.lang.Double.compare;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +17,7 @@ import application.objects.MovieMatch;
 import application.objects.Rating;
 import application.objects.User;
 import application.objects.UserMatch;
+import com.google.common.collect.Multimap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,34 +32,21 @@ public class MovieRecommendationsService {
 
 		Map<User, UserMatch> userToUserMatch = userMatches.stream().collect(toMap(UserMatch::getUser, identity()));
 
-		Map<String, List<Rating>> movieToRatings = new HashMap<>();
-		for(User otherUser : users){
-			if(otherUser != user){
-				List<Rating> userRatings = otherUser.getRatings().stream()
-						.filter(rating -> hasUserNotSeenRatedMovie(user, rating)).collect(toList());
-
-				userRatings.forEach(rating -> {
-					if(movieToRatings.get(rating.getMovie()) == null){
-						List<Rating> ratingList = new ArrayList<>();
-						ratingList.add(rating);
-						movieToRatings.put(rating.getMovie(), ratingList);
-					} else {
-						movieToRatings.get(rating.getMovie()).add(rating);
-					}
-				});
-			}
-		}
+		Multimap<String, Rating> movieToRatings = users.stream()
+				.flatMap(otherUser -> otherUser.getRatings().stream())
+				.filter(rating -> hasUserNotSeenRatedMovie(user, rating))
+				.collect(toMultimap(Rating::getMovie, identity(), hashKeys().arrayListValues()::build));
 
 		List<MovieMatch> matches = new ArrayList<>();
 
-		for(Map.Entry<String, List<Rating>> movieRatings : movieToRatings.entrySet()){
-			String movie = movieRatings.getKey();
+		for(String movie : movieToRatings.keySet()){
+			Collection<Rating> movieRatings =  movieToRatings.get(movie);
 			MovieMatch movieMatch = new MovieMatch(movie);
 
 			double totalRatingScore = 0;
 			double totalMatchScore = 0;
 
-			for(Rating rating : movieRatings.getValue()){
+			for(Rating rating : movieRatings){
 				UserMatch match = userToUserMatch.get(rating.getUser());
 				totalRatingScore += rating.getScore() * match.getMatchScore();
 				totalMatchScore += match.getMatchScore();
